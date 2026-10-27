@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Codex Herbarum - D&D</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pergamino: #f4ecd8;
+      --pergamino-oscuro: #e4cea0;
+      --texto: #2b1d0c;
+      --borde: #8c6738;
+      --acento: #5c3a21;
+    }
+
+    body {
+      background-color: #120e0a;
+      color: var(--texto);
+      font-family: 'Lora', serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      padding: 15px;
+      background: var(--pergamino-oscuro);
+      width: 100%;
+      box-sizing: border-box;
+      border-bottom: 3px solid var(--borde);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      margin: 0;
+      color: var(--acento);
+      font-size: 1.5rem;
+    }
+
+    .contador {
+      font-size: 0.85rem;
+      font-style: italic;
+      margin-top: 3px;
+    }
+
+    nav {
+      margin-top: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    nav button {
+      background: var(--pergamino);
+      border: 2px solid var(--borde);
+      color: var(--texto);
+      padding: 8px 16px;
+      font-family: 'Cinzel', serif;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    nav button.active {
+      background: var(--acento);
+      color: var(--pergamino);
+      border-color: #3b2514;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+      transform: translateY(1px);
+    }
+
+    main {
+      width: 100%;
+      max-width: 600px;
+      padding: 15px;
+      box-sizing: border-box;
+    }
+
+    .vista { display: block; }
+    .oculto { display: none; }
+
+    /* Tarjetas tipo Libro */
+    .grid-cartas {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .carta-planta {
+      background-color: var(--pergamino);
+      border: 4px double var(--borde);
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .carta-planta h3 {
+      font-family: 'Cinzel', serif;
+      border-bottom: 1px solid var(--borde);
+      padding-bottom: 5px;
+      margin-top: 0;
+      color: var(--acento);
+      font-size: 1.2rem;
+    }
+
+    .meta-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .tag {
+      background: var(--borde);
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Cinzel', serif;
+    }
+
+    .tag-rareza { background: #7a4f2e; }
+    .tag-region { background: #3b5238; }
+
+    .carta-planta img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border: 1px solid var(--borde);
+      margin: 10px 0;
+      background: #e0d5be;
+    }
+
+    .propiedad {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      white-space: pre-line;
+    }
+
+    /* Paneles y Filtros */
+    .panel-admin, .panel-codex {
+      background: var(--pergamino);
+      border: 4px double var(--borde);
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      margin-bottom: 15px;
+    }
+
+    #buscador-admin {
+      width: 100%;
+      padding: 9px;
+      box-sizing: border-box;
+      background: #fff;
+      border: 2px solid var(--borde);
+      font-family: 'Lora', serif;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    .filtros-box-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .filtro-seccion {
+      background: #fff;
+      border: 2px solid var(--borde);
+      border-radius: 4px;
+      padding: 8px;
+      max-height: 120px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+    }
+
+    .filtro-titulo {
+      font-family: 'Cinzel', serif;
+      font-weight: bold;
+      font-size: 0.8rem;
+      color: var(--acento);
+      margin-bottom: 5px;
+      border-bottom: 1px solid var(--borde);
+      padding-bottom: 2px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+
+    .checkbox-label input {
+      accent-color: var(--acento);
+    }
+
+    .opcion-extra {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .checklist-container {
+      max-height: 45vh;
+      overflow-y: auto;
+      border-top: 1px dashed var(--borde);
+      padding-top: 10px;
+    }
+
+    .item-check {
+      display: flex;
+      align-items: center;
+      padding: 10px 5px;
+      border-bottom: 1px dashed rgba(140, 103, 56, 0.3);
+      font-size: 0.95rem;
+    }
+
+    .item-check input {
+      margin-right: 12px;
+      transform: scale(1.3);
+      accent-color: var(--acento);
+      cursor: pointer;
+    }
+
+    .nota-guia {
+      font-size: 0.85rem;
+      font-style: italic;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .error-caja {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+      padding: 20px;
+      border-radius: 6px;
+      text-align: center;
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Codex Herbarum</h1>
+    <div id="contador-texto" class="contador">Plantas descubiertas: 0 / 0</div>
+    <nav>
+      <button onclick="cambiarVista('codex')" id="btn-codex" class="active">📖 Codex</button>
+      <button onclick="cambiarVista('admin')" id="btn-admin">⚙️ Descubrir</button>
+    </nav>
+  </header>
+
+  <main id="main-container">
+    <!-- VISTA 1: EL CODEX DEL DRUIDA -->
+    <section id="vista-codex" class="vista">
+      <div class="panel-codex">
+        <div class="filtros-box-group">
+          <div class="filtro-seccion">
+            <div class="filtro-titulo">Regiones</div>
+            <div id="codex-regions-filters"></div>
+          </div>
+          <div class="filtro-seccion">
+            <div class="filtro-titulo">Rarezas</div>
+            <div id="codex-rarities-filters"></div>
+          </div>
+        </div>
+      </div>
+      <div id="contenedor-cartas" class="grid-cartas"></div>
+    </section>
+
+    <!-- VISTA 2: PANEL DE DESCUBRIMIENTO -->
+    <section id="vista-admin" class="vista oculto">
+      <div class="panel-admin">
+        <p class="nota-guia">Filtra y marca las hierbas descubiertas:</p>
+        <input type="text" id="buscador-admin" placeholder="Buscar por nombre..." oninput="filtrarAdmin()">
+        
+        <div class="filtros-box-group">
+          <div class="filtro-seccion">
+            <div class="filtro-titulo">Regiones</div>
+            <div id="admin-regions-filters"></div>
+          </div>
+          <div class="filtro-seccion">
+            <div class="filtro-titulo">Rarezas</div>
+            <div id="admin-rarities-filters"></div>
+          </div>
+        </div>
+
+        <div class="opcion-extra">
+          <label style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <input type="checkbox" id="check-ocultar-conocidas" onchange="filtrarAdmin()" style="accent-color: var(--acento);">
+            Ocultar plantas ya descubiertas
+          </label>
+        </div>
+
+        <div id="lista-checklist" class="checklist-container" style="margin-top: 10px;"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="datos.js"></script>
+
+  <script>
+  // Registrar Service Worker para permitir la instalación como PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker registrado con éxito', reg))
+          .catch(err => console.log('Error al registrar el Service Worker', err));
+      });
+    }
+    window.onload = () => {
+      if (typeof listaPlantas === 'undefined') {
+        document.getElementById('main-container').innerHTML = `
+          <div class="error-caja">
+            <h3>⚠️ Error al cargar datos.js</h3>
+            <p>No se pudo leer la lista de plantas. Comprueba que el archivo datos.js no tenga errores de sintaxis.</p>
+          </div>`;
+        return;
+      }
+
+      actualizarContador();
+      construirFiltrosCheckbox();
+      renderizarCodex();
+      renderizarChecklist();
+    };
+
+    function obtenerDesbloqueadas() {
+      const guardadas = localStorage.getItem('druida_plantas_desbloqueadas');
+      return guardadas ? JSON.parse(guardadas) : [];
+    }
+
+    function guardarDesbloqueadas(ids) {
+      localStorage.setItem('druida_plantas_desbloqueadas', JSON.stringify(ids));
+      actualizarContador();
+    }
+
+    function actualizarContador() {
+      if (typeof listaPlantas === 'undefined') return;
+      const totalConocidas = obtenerDesbloqueadas().length;
+      document.getElementById('contador-texto').innerText = `Plantas descubiertas: ${totalConocidas} / ${listaPlantas.length}`;
+    }
+
+    function cambiarVista(vista) {
+      const vCodex = document.getElementById('vista-codex');
+      const vAdmin = document.getElementById('vista-admin');
+      const bCodex = document.getElementById('btn-codex');
+      const bAdmin = document.getElementById('btn-admin');
+
+      if (vista === 'codex') {
+        vCodex.classList.remove('oculto');
+        vAdmin.classList.add('oculto');
+        bCodex.classList.add('active');
+        bAdmin.classList.remove('active');
+        renderizarCodex();
+      } else {
+        vCodex.classList.add('oculto');
+        vAdmin.classList.remove('oculto');
+        bAdmin.classList.add('active');
+        bCodex.classList.remove('active');
+        renderizarChecklist();
+      }
+    }
+
+    function construirFiltrosCheckbox() {
+      let regionesSet = new Set();
+      let raritiesSet = new Set();
+
+      listaPlantas.forEach(p => {
+        if (p.rarity) raritiesSet.add(p.rarity);
+        if (p.region) {
+          p.region.split(',').forEach(r => regionesSet.add(r.trim()));
+        }
+      });
+
+      const regArray = Array.from(regionesSet).sort();
+      const rarArray = Array.from(raritiesSet).sort();
+
+      llenarContenedorFiltros('codex-regions-filters', regArray, 'reg-codex', renderizarCodex);
+      llenarContenedorFiltros('codex-rarities-filters', rarArray, 'rar-codex', renderizarCodex);
+      llenarContenedorFiltros('admin-regions-filters', regArray, 'reg-admin', filtrarAdmin);
+      llenarContenedorFiltros('admin-rarities-filters', rarArray, 'rar-admin', filtrarAdmin);
+    }
+
+    function llenarContenedorFiltros(containerId, items, prefix, callbackOnChange) {
+      const contenedor = document.getElementById(containerId);
+      contenedor.innerHTML = '';
+      items.forEach((item, index) => {
+        const label = document.createElement('label');
+        label.className = 'checkbox-label';
+        label.innerHTML = `
+          <input type="checkbox" value="${item}" id="${prefix}-${index}" onchange="${callbackOnChange.name}()">
+          <span>${item}</span>
+        `;
+        contenedor.appendChild(label);
+      });
+    }
+
+    function obtenerSeleccionados(prefix) {
+      const checkboxes = document.querySelectorAll(`input[id^="${prefix}-"]:checked`);
+      return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    function renderizarCodex() {
+      const contenedor = document.getElementById('contenedor-cartas');
+      const desbloqueadasIds = obtenerDesbloqueadas();
+      
+      const regionesSeleccionadas = obtenerSeleccionados('reg-codex');
+      const raridadesSeleccionadas = obtenerSeleccionados('rar-codex');
+
+      const plantasConocidas = listaPlantas.filter(p => {
+        if (!desbloqueadasIds.includes(p.id)) return false;
+
+        let pasaRegion = true;
+        if (regionesSeleccionadas.length > 0) {
+          pasaRegion = regionesSeleccionadas.some(regSel => 
+            p.region.toLowerCase().includes(regSel.toLowerCase())
+          );
+        }
+
+        let pasaRaridad = true;
+        if (raridadesSeleccionadas.length > 0) {
+          pasaRaridad = raridadesSeleccionadas.includes(p.rarity);
+        }
+
+        return pasaRegion && pasaRaridad;
+      });
+
+      contenedor.innerHTML = '';
+
+      if (plantasConocidas.length === 0) {
+        contenedor.innerHTML = `
+          <div class="carta-planta" style="text-align:center; font-style:italic;">
+            <h3>Grimorio Vacío</h3>
+            <p>No hay plantas que coincidan con los filtros seleccionados o el druida aún no las ha descubierto.</p>
+          </div>`;
+        return;
+      }
+
+      plantasConocidas.forEach(p => {
+        const carta = document.createElement('div');
+        carta.className = 'carta-planta';
+        carta.innerHTML = `
+          <h3>${p.name}</h3>
+          <div class="meta-tags">
+            <span class="tag tag-rareza">${p.rarity}</span>
+            <span class="tag tag-region">${p.region}</span>
+            <span class="tag">${p.tag}</span>
+          </div>
+          ${p.img ? `<img src="img/${p.img}" alt="${p.name}" onerror="this.style.display='none'">` : ''}
+          <div class="propiedad"><strong>Descripción:</strong> ${p.description}</div>
+        `;
+        contenedor.appendChild(carta);
+      });
+    }
+
+    function renderizarChecklist() {
+      const contenedor = document.getElementById('lista-checklist');
+      const desbloqueadasIds = obtenerDesbloqueadas();
+      
+      const textoFiltro = document.getElementById('buscador-admin').value.toLowerCase().trim();
+      const regionesSeleccionadas = obtenerSeleccionados('reg-admin');
+      const raridadesSeleccionadas = obtenerSeleccionados('rar-admin');
+      const ocultarConocidas = document.getElementById('check-ocultar-conocidas').checked;
+
+      const filtradas = listaPlantas.filter(p => {
+        const estaDesbloqueada = desbloqueadasIds.includes(p.id);
+        if (ocultarConocidas && estaDesbloqueada) return false;
+
+        const coincideTexto = p.name.toLowerCase().includes(textoFiltro);
+
+        let pasaRegion = true;
+        if (regionesSeleccionadas.length > 0) {
+          pasaRegion = regionesSeleccionadas.some(regSel => 
+            p.region.toLowerCase().includes(regSel.toLowerCase())
+          );
+        }
+
+        let pasaRaridad = true;
+        if (raridadesSeleccionadas.length > 0) {
+          pasaRaridad = raridadesSeleccionadas.includes(p.rarity);
+        }
+
+        return coincideTexto && pasaRegion && pasaRaridad;
+      });
+
+      contenedor.innerHTML = '';
+      if (filtradas.length === 0) {
+        contenedor.innerHTML = '<p style="text-align:center; font-style:italic; color:#666; padding:15px;">No se encontró ninguna planta con esos criterios.</p>';
+        return;
+      }
+
+      filtradas.forEach(p => {
+        const estaCheck = desbloqueadasIds.includes(p.id);
+        const div = document.createElement('div');
+        div.className = 'item-check';
+        div.innerHTML = `
+          <input type="checkbox" id="plant-${p.id}" ${estaCheck ? 'checked' : ''} onchange="togglePlanta(${p.id})">
+          <label for="plant-${p.id}" style="cursor:pointer;"><strong>#${p.id}</strong> - ${p.name} <span style="font-size:0.75rem; opacity:0.7;">(${p.region})</span></label>
+        `;
+        contenedor.appendChild(div);
+      });
+    }
+
+    function togglePlanta(id) {
+      let desbloqueadasIds = obtenerDesbloqueadas();
+      const index = desbloqueadasIds.indexOf(id);
+
+      if (index > -1) {
+        desbloqueadasIds.splice(index, 1);
+      } else {
+        desbloqueadasIds.push(id);
+      }
+
+      guardarDesbloqueadas(desbloqueadasIds);
+    }
+
+    function filtrarAdmin() {
+      renderizarChecklist();
+    }
+  </script>
+</body>
+</html>
